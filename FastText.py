@@ -10,6 +10,9 @@ from nltk.stem import WordNetLemmatizer
 from sklearn.decomposition import PCA
 import arabic_reshaper
 from bidi.algorithm import get_display
+from gensim.test.utils import get_tmpfile
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
 
 #nltk.download('punkt')
 #nltk.download('wordnet')
@@ -17,25 +20,24 @@ from bidi.algorithm import get_display
 # Load Data ############################################
 
 print('Loading Data')
-"""iran = wiki.page("iran").content
-tehran = wiki.page("tehran").content"""
+"""answers = wiki.page("answers").content
+questions = wiki.page("questions").content"""
 
-file = open(r'create_persian_dataset/answers.txt', mode= 'r')
-iran = file.read()
+file = open(r'dataset/answers.txt', mode= 'r')
+answers = file.read()
 file.close()
-file = open(r'create_persian_dataset/questions.txt', mode= 'r')
-tehran = file.read()
+file = open(r'dataset/questions.txt', mode= 'r')
+questions = file.read()
 
 # tokenize #############################################
 
-iran = sent_tokenize(iran)
-tehran = sent_tokenize(tehran)
-iran.extend(tehran)
+answers = sent_tokenize(answers)
+questions = sent_tokenize(questions)
+answers.extend(questions)
 
 # Preprocessing ########################################
 
 def preprocess(doc) :
-    doc = re.sub(r'\W', ' ',str(doc))
     doc = re.sub(r'\^[a-zA-Z]\s+', ' ', str(doc))
     doc = re.sub(r'\s+', ' ', str(doc), flags=re.I)
     doc = re.sub(r'\d+', ' ', str(doc))
@@ -46,10 +48,9 @@ def preprocess(doc) :
     preprocessed_text = ' '.join(tokens)
     return preprocessed_text
 
-final_corpus = [preprocess(sentence) for sentence in iran if sentence.strip() != '']
+final_corpus = [preprocess(sentence) for sentence in answers if sentence.strip() != '']
 word_puntuation_tokenizer = nltk.WordPunctTokenizer()
 word_toknized_corpus = [word_puntuation_tokenizer.tokenize(sent) for sent in final_corpus]
-
 # FastText ########################################
 
 print("training....")
@@ -63,10 +64,10 @@ fasttext_model = FastText(word_toknized_corpus,
                           epochs = 10)
 finish_time = time.time()
 print('Model Trained in {h} seconds'.format(h= finish_time - start_time))
-
+fasttext_model.save(r"Model/model.bin") #save model
 #Simillarity Section ########################################
 
-target_words = ['بیمارستان', 'ناموسا', 'دانشمند']
+target_words = ['شیطان', 'eos', 'دانشمند']
 samantically_simillar_words = {words : [item[0] for item in fasttext_model.wv.most_similar([words], topn= 5)]
                                for words in target_words}
 similar_words = sum([[k] + v for k, v in samantically_simillar_words.items()], [])
@@ -74,6 +75,8 @@ similar_words = sum([[k] + v for k, v in samantically_simillar_words.items()], [
 # Creating 2D Vector ###########################################
 
 word_vectors = fasttext_model.wv[similar_words]
+print(word_vectors[5])
+print(fasttext_model.wv.similar_by_vector(word_vectors[5]))
 pca = PCA(n_components= 2)
 points = pca.fit_transform(word_vectors)
 

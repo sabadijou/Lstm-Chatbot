@@ -23,20 +23,27 @@ def remove_punctuation(doc) :
     return doc
 
 def preprossing(documrct) :
+    #doc = re.sub(r'\W', ' ', str(documrct))
     doc = re.sub(r'\d+', ' ', str(documrct))
     doc = re.sub(r'\s*[A-Za-z]+\b', ' ', str(doc))
     doc = re.sub(r'\s*[A-Za-z]+\b', ' ', str(doc))
+
     return doc
 
 preprossed_doc = preprossing(subs_text).splitlines()
+while("" in preprossed_doc) :
+    preprossed_doc.remove("")
 questions = []
 answers = []
 i = 5
 
 while i < len(preprossed_doc) - 5 :
     if '؟' in preprossed_doc[i] :
-        questions.append(remove_punctuation(preprossed_doc[i]).strip())
-        answers.append(remove_punctuation(preprossed_doc[i + 1]).strip())
+        q = remove_punctuation(preprossed_doc[i]).strip()
+        a = remove_punctuation(preprossed_doc[i + 1]).strip()
+        if len(a) >= 2:
+            questions.append(q)
+            answers.append(a)
     i += 1
 
 try:
