@@ -1,11 +1,13 @@
-from tensorflow.keras.models import Model
 from tensorflow.keras.layers import LSTM, Dense, Input, Embedding
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from word_dict import wc, dictionary, inverse_dict
 from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.models import Model
 from gensim.models import FastText
 import numpy as np
 import nltk
-from word_dict import wc, dictionary, inverse_dict
+import re
+
 
 class chatbot_trainig() :
     def __init__(self):
@@ -102,70 +104,65 @@ class chatbot_trainig() :
                               optimizer='adam')
         enc_dec_model.fit([self.questions, self.answers],
                           self.final_answers,
-                          epochs=1)
+                          epochs=30)
         enc_dec_model.save(r'Model/lstm/edm.5h')
         self.enc_model = Model([enc_inp], enc_states)
     def inference(self):
         decoder_state_input_h = Input(shape=(400,))
         decoder_state_input_c = Input(shape=(400,))
         decoder_state_inputs = [decoder_state_input_h, decoder_state_input_c]
-        decoder_outputs, state_h, state_c = self.dec_lstm(self.dec_inp, initial_state=decoder_state_inputs)
+        decoder_outputs, state_h, state_c = self.dec_lstm(self.dec_embed, initial_state=decoder_state_inputs)
         decoder_states = [state_h, state_c]
         dec_model = Model([self.dec_inp] + decoder_state_inputs,
                           [decoder_outputs] + decoder_states)
         self.dec_model = dec_model
-    def response(self, question):
-        question = [question.strip()]
-        question = self.preprocess_dataset(question)
-        self.empty_target_seq = self.preprocess_dataset(['SOS'])
-        """stat = self.enc_model(self.empty_target_seq)
-        self.dec_outputs, self.h, self.c = self.dec_model.predict([self.empty_target_seq] + stat)
-        i = np.zeros((30, 60))
-        for vec in question[0] :
-            i[0] = vec
-            self.dec_outputs, self.h, self.c = self.dec_model.predict([self.empty_target_seq] + stat)
-            decoder_concat_input = self.dense(self.dec_outputs)
-            d = np.array(decoder_concat_input)
-            print()
-            #self.fasttext.wv.similar_by_vector(d, topn=1)"""
 
-        e_o_s = self.preprocess_dataset(['EOS'])
-        stat = self.enc_model(question)
-        i = 0
-        while i < 10 :
-            dec_outputs, h, c = self.dec_model.predict([self.empty_target_seq] + stat)
-            decoder_concat_input = self.dense(dec_outputs)
-            d = np.array(decoder_concat_input)
-            d = np.reshape(d, (30, 60))
-            for vec in d:
-                x = self.fasttext.wv.similar_by_vector(vec, topn=1)
-                #if x != 0 :
-                print(x)
-            stat = [h, c]
-            self.empty_target_seq = decoder_concat_input
-            i += 1
-        """stop_condition = False
-        decoded_translation = ''
-        i = 0
-        while i < 30 :
-            dec_outputs, h, c = self.dec_model.predict([self.empty_target_seq] + stat)
-            decoder_concat_input = self.dense(dec_outputs)
-            print(decoder_concat_input.shape)
-            d = np.array(decoder_concat_input)
-            d = np.reshape(d, (30, 60))
-            if d.all == e_o_s.all:
-                stop_condition = True
+    def remove_punctuation(self, doc):
+        my_punct = ['!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '.',
+                    '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_',
+                    '`', '{', '|', '}', '~', '»', '«', '“', '”', '؟', '،', '-', '♪']
+        doc = re.sub("[" + re.escape("".join(my_punct)) + "]", ' ', str(doc))
+        doc = re.sub(r'\s+', ' ', doc)
+        return doc
+
+    def response(self, question):
+        my_dictionary = dictionary()
+        question = [self.remove_punctuation(question)]
+        word_puntuation_tokenizer = nltk.WordPunctTokenizer()
+        word_toknized_corpus = [word_puntuation_tokenizer.tokenize(word) for word in question][0]
+        question = []
+        for word in word_toknized_corpus:
+            try:
+                question.append(my_dictionary[word])
+            except:
+                most_similar = self.fasttext.wv.similar_by_word(word, topn=1)
+                question.append(my_dictionary[most_similar[0][0]])
+        question = pad_sequences(sequences= [question], maxlen=20, dtype=int, padding='post',
+                                truncating='post')
+        stat = self.enc_model.predict(question)
+        dec_s = np.zeros((1, 1))
+        dec_s[0,0] = my_dictionary['<SOS>']
+        inv_dict = inverse_dict()
+        run = True
+        while run :
+            dec_outputs, h, c = self.dec_model.predict([dec_s] + stat)
+            decoder_input = self.dense(dec_outputs)
+            word_index = np.argmax(decoder_input[0, -1, :])
+            inf_word = inv_dict[word_index]
+            if inf_word == '<EOS>':
+                run = False
             else:
-                for vec in d:
-                    print(self.fasttext.wv.similar_by_vector(vec, topn=1))
-                self.empty_target_seq = decoder_concat_input
+                print(inf_word)
                 stat = [h, c]
-            i += 1"""
+                dec_s = np.zeros((1, 1))
+                dec_s[0, 0] = word_index
+
+
 if __name__ == '__main__':
     x = chatbot_trainig()
     x.model()
-    #x.inference()
-    #x.response('بریم چرنوبیل')
+    x.inference()
+    x.response('الان چی گفتی')
 
 
 

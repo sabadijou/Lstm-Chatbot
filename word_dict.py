@@ -67,5 +67,6 @@ def wc():
 def dictionary():
     return x.word_dict
 def inverse_dict():
-    inv = {v: k for k, v in x.word_dict.items()}
+    inv = {value : key for (key, value) in x.word_dict.items()}
     return inv
+
