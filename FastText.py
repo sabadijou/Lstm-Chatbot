@@ -41,16 +41,20 @@ def preprocess(doc) :
     doc = re.sub(r'\^[a-zA-Z]\s+', ' ', str(doc))
     doc = re.sub(r'\s+', ' ', str(doc), flags=re.I)
     doc = re.sub(r'\d+', ' ', str(doc))
-    doc = doc.lower()
     tokens = doc.split()
     tokens = [WordNetLemmatizer.lemmatize(self=FastText, word=word) for word in tokens]
-    tokens = [word for word in tokens if len(word) > 3]
+    tokens = [word for word in tokens if (len(word) > 3)]
     preprocessed_text = ' '.join(tokens)
     return preprocessed_text
 
 final_corpus = [preprocess(sentence) for sentence in answers if sentence.strip() != '']
 word_puntuation_tokenizer = nltk.WordPunctTokenizer()
 word_toknized_corpus = [word_puntuation_tokenizer.tokenize(sent) for sent in final_corpus]
+###################################################
+merged_list = []
+merged_list = word_toknized_corpus[0] + word_toknized_corpus[1]
+print('Number of words :', len(set(merged_list)))
+
 # FastText ########################################
 
 print("training....")
@@ -75,8 +79,6 @@ similar_words = sum([[k] + v for k, v in samantically_simillar_words.items()], [
 # Creating 2D Vector ###########################################
 
 word_vectors = fasttext_model.wv[similar_words]
-print(word_vectors[5])
-print(fasttext_model.wv.similar_by_vector(word_vectors[5]))
 pca = PCA(n_components= 2)
 points = pca.fit_transform(word_vectors)
 
