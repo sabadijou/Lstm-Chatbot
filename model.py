@@ -25,7 +25,6 @@ class chatbot_trainig() :
         self.dec_model = None
         self.dec_embed = None
         self.dense = None
-        self.words_number = 3040
 
     def preprocess_dataset(self, documnet, t = 0):
         try:
@@ -163,6 +162,11 @@ if __name__ == '__main__':
     x.model()
     x.inference()
     x.response('الان چی گفتی')
+    x.response('سلام')
+    x.response('حالت خوبه ؟')
+    x.response('کجا بودی')
+    x.response('ایران در کدام قاره است')
+
 
 
 
