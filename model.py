@@ -1,13 +1,15 @@
+import tensorflow.core.protobuf.config_pb2 as gpu
 from tensorflow.keras.layers import LSTM, Dense, Input, Embedding
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from word_dict import wc, dictionary, inverse_dict
+from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Model
 from gensim.models import FastText
 import numpy as np
+import pickle
 import nltk
 import re
-
 
 class chatbot_trainig() :
     def __init__(self):
@@ -25,7 +27,8 @@ class chatbot_trainig() :
         self.dec_model = None
         self.dec_embed = None
         self.dense = None
-
+        tfboard = TensorBoard(log_dir=r'logs/model_log')
+        self.callback = [tfboard]
     def preprocess_dataset(self, documnet, t = 0):
         try:
             word_puntuation_tokenizer = nltk.WordPunctTokenizer()
@@ -103,9 +106,16 @@ class chatbot_trainig() :
                               optimizer='adam')
         enc_dec_model.fit([self.questions, self.answers],
                           self.final_answers,
-                          epochs=30)
+                          epochs=20,
+                          validation_split = 0.2,
+                          shuffle = True,
+                          callbacks = self.callback)
         enc_dec_model.save(r'Model/lstm/edm.5h')
         self.enc_model = Model([enc_inp], enc_states)
+        self.enc_model.save(r'Model/encoder/enc.5h')
+        dense_config = self.dense
+        with open(r'Model/dense/dense.config', 'wb') as config_dictionary_file:
+            pickle.dump(dense_config, config_dictionary_file)
     def inference(self):
         decoder_state_input_h = Input(shape=(400,))
         decoder_state_input_c = Input(shape=(400,))
@@ -114,6 +124,7 @@ class chatbot_trainig() :
         decoder_states = [state_h, state_c]
         dec_model = Model([self.dec_inp] + decoder_state_inputs,
                           [decoder_outputs] + decoder_states)
+        dec_model.save(r'Model/decoder/decm.5h')
         self.dec_model = dec_model
 
     def remove_punctuation(self, doc):
@@ -161,11 +172,7 @@ if __name__ == '__main__':
     x = chatbot_trainig()
     x.model()
     x.inference()
-    x.response('الان چی گفتی')
-    x.response('سلام')
-    x.response('حالت خوبه ؟')
-    x.response('کجا بودی')
-    x.response('ایران در کدام قاره است')
+    print('Model is trained successfully')
 
 
 
