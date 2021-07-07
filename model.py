@@ -81,25 +81,24 @@ class chatbot_trainig() :
     def model(self):
         word_count = wc()
         print(type(word_count),word_count)
-        enc_inp = Input(shape=(20, ), name='EncoderInput')
-        self.dec_inp = Input(shape=(20, ), name='DecoderInput')
+        enc_inp = Input(shape=(20, ))
+        self.dec_inp = Input(shape=(20, ))
         # Embedding
         embed = Embedding(word_count+1,
                           output_dim=50,
                           input_length=20,
-                          trainable=True,
-                          name='Embedding')
+                          trainable=True)
         # Encoder
         enc_embed = embed(enc_inp)
-        enc_lstm = LSTM(400, return_state=True, return_sequences=True, name='EncodingLSTM')
+        enc_lstm = LSTM(400, return_state=True, return_sequences=True)
         enc_op, h, c = enc_lstm(enc_embed)
         enc_states = [h, c]
 
         # Decoder
         self.dec_embed = embed(self.dec_inp)
-        self.dec_lstm = LSTM(400, return_state=True, return_sequences=True,  name='DecodingLSTM')
+        self.dec_lstm = LSTM(400, return_state=True, return_sequences=True)
         dec_op, _, _ = self.dec_lstm(self.dec_embed, initial_state= enc_states)
-        dense_l = Dense(word_count, activation='softmax', name='ClassificationLayer')
+        dense_l = Dense(word_count, activation='softmax')
         self.dense = dense_l
         dense_op = dense_l(dec_op)
         enc_dec_model = Model([enc_inp, self.dec_inp], dense_op)
@@ -108,7 +107,7 @@ class chatbot_trainig() :
                               optimizer='adam')
         enc_dec_model.fit([self.questions, self.answers],
                           self.final_answers,
-                          epochs=10,
+                          epochs=5,
                           validation_split = 0.1,
                           shuffle = True,
                           callbacks = self.callback)
@@ -156,6 +155,7 @@ class chatbot_trainig() :
         dec_s[0,0] = my_dictionary['<SOS>']
         inv_dict = inverse_dict()
         run = True
+        ans = ''
         while run :
             dec_outputs, h, c = self.dec_model.predict([dec_s] + stat)
             decoder_input = self.dense(dec_outputs)
@@ -166,7 +166,7 @@ class chatbot_trainig() :
             else:
                 ans = ans + inf_word
                 stat = [h, c]
-                #dec_s = np.zeros((1, 1))
+                dec_s = np.zeros((1, 1))
                 dec_s[0, 0] = word_index
 
         return ans
@@ -175,6 +175,8 @@ if __name__ == '__main__':
     x = chatbot_trainig()
     x.model()
     x.inference()
+    x.response('سلام')
+    x.response('چه خبر')
     print('Model is trained successfully')
 
 

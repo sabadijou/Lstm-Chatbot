@@ -56,7 +56,6 @@ class chatbot():
                 stat = [h, c]
                 dec_s = np.zeros((1, 1))
                 dec_s[0, 0] = word_index
-
         return ans
 if __name__ == '__main__':
     chat = chatbot()
