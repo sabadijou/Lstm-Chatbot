@@ -12,6 +12,7 @@ import nltk
 import re
 
 class chatbot_trainig() :
+
     def __init__(self):
         self.words_dictionary = dict()
         self.id = 0
@@ -80,24 +81,25 @@ class chatbot_trainig() :
     def model(self):
         word_count = wc()
         print(type(word_count),word_count)
-        enc_inp = Input(shape=(20, ))
-        self.dec_inp = Input(shape=(20, ))
+        enc_inp = Input(shape=(20, ), name='EncoderInput')
+        self.dec_inp = Input(shape=(20, ), name='DecoderInput')
         # Embedding
         embed = Embedding(word_count+1,
                           output_dim=50,
                           input_length=20,
-                          trainable=True)
+                          trainable=True,
+                          name='Embedding')
         # Encoder
         enc_embed = embed(enc_inp)
-        enc_lstm = LSTM(400, return_state=True, return_sequences=True)
+        enc_lstm = LSTM(400, return_state=True, return_sequences=True, name='EncodingLSTM')
         enc_op, h, c = enc_lstm(enc_embed)
         enc_states = [h, c]
 
         # Decoder
         self.dec_embed = embed(self.dec_inp)
-        self.dec_lstm = LSTM(400, return_state=True, return_sequences=True)
-        dec_op, _, _ = self.dec_lstm(enc_embed)
-        dense_l = Dense(word_count, activation='softmax')
+        self.dec_lstm = LSTM(400, return_state=True, return_sequences=True,  name='DecodingLSTM')
+        dec_op, _, _ = self.dec_lstm(self.dec_embed, initial_state= enc_states)
+        dense_l = Dense(word_count, activation='softmax', name='ClassificationLayer')
         self.dense = dense_l
         dense_op = dense_l(dec_op)
         enc_dec_model = Model([enc_inp, self.dec_inp], dense_op)
@@ -106,13 +108,13 @@ class chatbot_trainig() :
                               optimizer='adam')
         enc_dec_model.fit([self.questions, self.answers],
                           self.final_answers,
-                          epochs=20,
-                          validation_split = 0.2,
+                          epochs=10,
+                          validation_split = 0.1,
                           shuffle = True,
                           callbacks = self.callback)
-        enc_dec_model.save(r'Model/lstm/edm.5h')
+        enc_dec_model.save(r'Model/lstm/edm.h5')
         self.enc_model = Model([enc_inp], enc_states)
-        self.enc_model.save(r'Model/encoder/enc.5h')
+        self.enc_model.save(r'Model/encoder/enc.h5')
         dense_config = self.dense
         with open(r'Model/dense/dense.config', 'wb') as config_dictionary_file:
             pickle.dump(dense_config, config_dictionary_file)
@@ -124,7 +126,7 @@ class chatbot_trainig() :
         decoder_states = [state_h, state_c]
         dec_model = Model([self.dec_inp] + decoder_state_inputs,
                           [decoder_outputs] + decoder_states)
-        dec_model.save(r'Model/decoder/decm.5h')
+        dec_model.save(r'Model/decoder/decm.h5')
         self.dec_model = dec_model
 
     def remove_punctuation(self, doc):
@@ -162,11 +164,12 @@ class chatbot_trainig() :
             if inf_word == '<EOS>':
                 run = False
             else:
-                print(inf_word)
+                ans = ans + inf_word
                 stat = [h, c]
-                dec_s = np.zeros((1, 1))
+                #dec_s = np.zeros((1, 1))
                 dec_s[0, 0] = word_index
 
+        return ans
 
 if __name__ == '__main__':
     x = chatbot_trainig()

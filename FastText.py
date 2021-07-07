@@ -71,7 +71,7 @@ print('Model Trained in {h} seconds'.format(h= finish_time - start_time))
 fasttext_model.save(r"Model/model.bin") #save model
 #Simillarity Section ########################################
 
-target_words = ['شیطان', 'eos', 'دانشمند']
+target_words = ['شیطان', 'نیروگاه','دانشمند' , 'شهر' , 'آزمایش' , 'دلقك' , 'كليسا', 'رفیق', 'ستاره' , 'تاریخ']
 samantically_simillar_words = {words : [item[0] for item in fasttext_model.wv.most_similar([words], topn= 5)]
                                for words in target_words}
 similar_words = sum([[k] + v for k, v in samantically_simillar_words.items()], [])

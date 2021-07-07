@@ -27,10 +27,10 @@ def preprossing(documrct) :
     doc = re.sub(r'\d+', ' ', str(documrct))
     doc = re.sub(r'\s*[A-Za-z]+\b', ' ', str(doc))
     doc = re.sub(r'\s*[A-Za-z]+\b', ' ', str(doc))
-
     return doc
 
 preprossed_doc = preprossing(subs_text).splitlines()
+
 while("" in preprossed_doc) :
     preprossed_doc.remove("")
 questions = []

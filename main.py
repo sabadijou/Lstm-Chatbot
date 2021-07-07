@@ -10,8 +10,8 @@ import nltk
 class chatbot():
 
     def __init__(self):
-        self.enc_model = load_model(r'Model/encoder/enc.5h')
-        self.dec_model = load_model(r'Model/decoder/decm.5h')
+        self.enc_model = load_model(r'Model/encoder/enc.h5')
+        self.dec_model = load_model(r'Model/decoder/decm.h5')
         self.fasttext = FastText.load(r'Model/model.bin')
         with open(r'Model/dense/dense.config', 'rb') as config_dictionary_file:
             self.dense = pickle.load(config_dictionary_file)
@@ -43,7 +43,7 @@ class chatbot():
         dec_s[0,0] = my_dictionary['<SOS>']
         inv_dict = inverse_dict()
         run = True
-        ans = []
+        ans = ''
         while run :
             dec_outputs, h, c = self.dec_model.predict([dec_s] + stat)
             decoder_input = self.dense(dec_outputs)
@@ -52,10 +52,11 @@ class chatbot():
             if inf_word == '<EOS>':
                 run = False
             else:
-                print(inf_word)
+                ans = ans + inf_word
                 stat = [h, c]
                 dec_s = np.zeros((1, 1))
                 dec_s[0, 0] = word_index
+
         return ans
 if __name__ == '__main__':
     chat = chatbot()
