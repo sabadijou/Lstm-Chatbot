@@ -1,4 +1,8 @@
-# چت‌بات هوشمند پیاده‌سازی شده با استفاده از یادگیری عمیق
+# Smart Chatbot using Generative Models for Persian Language
+### ربات هوشمند برای چت فارسی
 - Tensorflow
 - LSTM
-# دیاگرام مدل
+## Model Diagram
+[model diagram](https://github.com/sabadijou/Lstm-Chatbot/blob/master/DIAGRAM.png)
+## Computational Graph
+[computational graph](https://github.com/sabadijou/Lstm-Chatbot/blob/master/GRAPH.png)
