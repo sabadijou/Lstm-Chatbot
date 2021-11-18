@@ -171,14 +171,6 @@ class chatbot_trainig() :
 
         return ans
 
-if __name__ == '__main__':
-    x = chatbot_trainig()
-    x.model()
-    x.inference()
-    x.response('سلام')
-    x.response('چه خبر')
-    print('Model is trained successfully')
-
 
 
 
