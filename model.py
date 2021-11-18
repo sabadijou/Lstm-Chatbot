@@ -1,4 +1,3 @@
-import tensorflow.core.protobuf.config_pb2 as gpu
 from tensorflow.keras.layers import LSTM, Dense, Input, Embedding
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from word_dict import wc, dictionary, inverse_dict
@@ -170,6 +169,14 @@ class chatbot_trainig() :
                 dec_s[0, 0] = word_index
 
         return ans
+
+if __name__ == '__main__':
+    x = chatbot_trainig()
+    x.model()
+    x.inference()
+    x.response('سلام')
+    x.response('چه خبر')
+    print('Model is trained successfully')
 
 
 
