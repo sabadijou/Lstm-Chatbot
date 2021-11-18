@@ -3,6 +3,6 @@
 - Tensorflow
 - LSTM
 ## Model Diagram
-[model diagram](https://github.com/sabadijou/Lstm-Chatbot/blob/master/DIAGRAM.png)
+![model diagram](https://github.com/sabadijou/Lstm-Chatbot/blob/master/DIAGRAM.png)
 ## Computational Graph
-[computational graph](https://github.com/sabadijou/Lstm-Chatbot/blob/master/GRAPH.png)
+![computational graph](https://github.com/sabadijou/Lstm-Chatbot/blob/master/GRAPH.png)
