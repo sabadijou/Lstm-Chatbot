@@ -1,5 +1,4 @@
 # Smart Chatbot using Generative Models for Persian Language
-### چت بات هوشمند برای چت فارسی
 - Tensorflow
 - LSTM
 ## Model Diagram
